@@ -763,13 +763,12 @@
   window.addEventListener('appinstalled', function(){
     if (installBtn) installBtn.classList.remove('show');
   });
-  /* iOS Safari 没有 beforeinstallprompt：直接给个常驻入口 */
+  /* 没等到 beforeinstallprompt 也给常驻入口：点了就教怎么装 */
   (function(){
-    var ua = navigator.userAgent;
-    var iOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     var standalone = window.navigator.standalone === true ||
       (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
-    if (iOS && !standalone && installBtn) installBtn.classList.add('show');
+    if (standalone || !installBtn) return;   // 已经装在桌面上就不显示
+    setTimeout(function(){ installBtn.classList.add('show'); }, 1200);
   })();
 
   /* PWA：注册 Service Worker，装上主屏后可离线打开 */
