@@ -194,6 +194,15 @@
   }
   #makerBtn:active{transform:translateY(-50%) translateX(2px)}
   body.opened #makerBtn{background:#fff}
+  #installBtn{
+    top:auto;bottom:calc(50% + 104px);
+    background:#fff;border:3px solid var(--ink);box-shadow:5px 5px 0 var(--ink);
+    padding:9px 13px;border-radius:999px;font:800 13px/1 var(--font);
+    color:var(--ink);cursor:pointer;z-index:12;
+    display:none;
+  }
+  #installBtn[hidden]{display:none}
+  #installBtn.show{display:inline-flex;align-items:center;gap:5px}
 
   /* ---------- 制作面板 ---------- */
   #sheet{
@@ -298,6 +307,7 @@
 <button class="corner" id="sfxBtn" title="声音">🔊</button>
 <button class="corner" id="tempoBtn" title="加速">🎵 1×</button>
 <button class="corner" id="makerBtn">我要制作</button>
+<button class="corner" id="installBtn" hidden>装到桌面</button>
 
 <div id="sheet">
   <button id="closeSheet">✕</button>
@@ -728,6 +738,39 @@
       const s = getSelection(); s.removeAllRanges(); s.addRange(r);
     }
   });
+
+  /* PWA：装到主屏（安卓 Chrome / 桌面 Edge 走 beforeinstallprompt；iOS 走提示） */
+  var deferredPrompt = null;
+  var installBtn = document.getElementById('installBtn');
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault();
+    deferredPrompt = e;
+    if (installBtn) installBtn.classList.add('show');
+  });
+  if (installBtn) {
+    installBtn.addEventListener('click', function(){
+      if (!deferredPrompt) {
+        alert('iPhone / iPad：点底部「分享」→「添加到主屏幕」\n安卓 / 电脑：浏览器菜单里选「安装应用」');
+        return;
+      }
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function(){
+        deferredPrompt = null;
+        installBtn.classList.remove('show');
+      });
+    });
+  }
+  window.addEventListener('appinstalled', function(){
+    if (installBtn) installBtn.classList.remove('show');
+  });
+  /* iOS Safari 没有 beforeinstallprompt：直接给个常驻入口 */
+  (function(){
+    var ua = navigator.userAgent;
+    var iOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    var standalone = window.navigator.standalone === true ||
+      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+    if (iOS && !standalone && installBtn) installBtn.classList.add('show');
+  })();
 
   /* PWA：注册 Service Worker，装上主屏后可离线打开 */
   if ('serviceWorker' in navigator) {
