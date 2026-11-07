@@ -1,6 +1,6 @@
 /* 奶龙送礼 · Service Worker
    目的：装成 App 后断网也能打开；更新时用 cache-first + 后台刷新。 */
-const VERSION = 'nailong-gift-v3';
+const VERSION = 'nailong-gift-v4';
 const CORE = [
   './',
   './index.html',
